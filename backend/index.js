@@ -4,20 +4,14 @@ const bodyParser = require("body-parser");
 const router = require("./routes/router");
 const authRoutes = require("./routes/auth");
 const protectedRoute = require("./routes/protectedRoute");
-const mongoose = require("mongoose");
-const mongoDB = "mongodb://localhost:27017/test";
+const session = require("express-session");
+const MongoStore = require("connect-mongo");
+const mongoose = require("./db/connection");
+const { v4: uuidv4 } = require("uuid");
 
-mongoose.connect(mongoDB);
-mongoose.Promise = global.Promise;
-const db = mongoose.connection;
+require("dotenv").config();
+
 const app = express();
-
-db.on("connected", () => console.log("connected"));
-db.on("open", () => console.log("open"));
-db.on("disconnected", () => console.log("disconnected"));
-db.on("reconnected", () => console.log("reconnected"));
-db.on("disconnecting", () => console.log("disconnecting"));
-db.on("close", () => console.log("close"));
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -29,11 +23,35 @@ const corsOption = {
 };
 
 app.use(cors(corsOption));
+
+app.use(
+  session({
+    genid: (req) => {
+      return uuidv4(); // Generate a unique session ID
+    },
+    secret: process.env.EXPRESS_SESSION_SECRET, // Your session secret
+    resave: true,
+    saveUninitialized: false,
+    cookie: {
+      maxAge: 24 * 60 * 60 * 1000, // Session duration (in milliseconds)
+    },
+    store: MongoStore.create({
+      client: mongoose.connection.getClient(),
+      dbName: process.env.MONGO_DB_NAME,
+      collectionName: "sessions", // Name of the collection to store sessions
+      stringify: false,
+      autoRemove: "interval",
+      autoRemoveInterval: 1, // Interval for session cleanup
+    }),
+  })
+);
+
 app.use("/", router);
 app.use("/auth", authRoutes);
 app.use("/protected", protectedRoute);
 
 const port = 3001;
-const server = app.listen(port, () => {
+
+app.listen(port, () => {
   console.log("server start");
 });

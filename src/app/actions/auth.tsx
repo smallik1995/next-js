@@ -1,38 +1,43 @@
-import { SignupFormSchema, FormState } from "@/app/lib/definitions";
-import bcrypt from "bcryptjs";
-import { createSession } from "../lib/session";
+import { redirect } from "next/navigation";
+import { createSession, deleteSession } from "../lib/session";
+import { FormState, SignupFormSchema } from "../lib/definitions";
+import API from "../helpers/api";
+import { EMethod } from "../type";
 
-const signup = async (state: FormState, formData: FormData) => {
-  // Validate form fields
+const signup = async (state: FormState, formData: any) => {
   const validatedFields = SignupFormSchema.safeParse({
-    email: formData.get("email"),
+    username: formData.get("username"),
     password: formData.get("password"),
   });
 
-  // 2. Prepare data for insertion into database
-  const { email, password } = validatedFields.data;
-  // e.g. Hash the user's password before storing it
-  const hashedPassword = await bcrypt.hash(password, 10);
+  if (!validatedFields.success) {
+    return {
+      errors: validatedFields.error.flatten().fieldErrors,
+    };
+  }
 
-  // 3. Insert the user into the database or call an Auth Library's API
-  const data = await db
-    .insert(users)
-    .values({
-      email,
-      password: hashedPassword,
-    })
-    .returning({ id: users.id });
+  const { username, password } = validatedFields.data;
 
-  const user = data[0];
+  const userData = await API({
+    method: EMethod.post,
+    url: "auth/login",
+    payload: { username, password },
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
 
-  if (!user) {
+  if (!userData) {
     return {
       message: "An error occurred while creating your account.",
     };
   }
 
-  // 4. Create user session
-  await createSession(user.id);
+  await createSession(userData?.userId);
 };
+
+export async function logout() {
+  deleteSession();
+}
 
 export default signup;

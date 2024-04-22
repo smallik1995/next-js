@@ -1,5 +1,6 @@
 import "server-only";
 import { cookies } from "next/headers";
+import { decrypt } from "../lib/session";
 
 export async function updateSession() {
   const session = cookies().get("session")?.value;

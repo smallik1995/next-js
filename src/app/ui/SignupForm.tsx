@@ -1,20 +1,32 @@
 "use client";
 
+import { useState } from "react";
 import { useFormState } from "react-dom";
 import signup from "@/app/actions/auth";
-import SignupButton from "@/app/ui/SignupButton";
+import SignupButton from "./SignupButton";
 
 const SignupForm = () => {
   const [state, action] = useFormState(signup, undefined);
+  // const [username, setUsername] = useState("");
+  // const [password, setPassword] = useState("");
+
+  // const handleSubmit = (e: { preventDefault: () => void }) => {
+  //   e.preventDefault();
+  //   const data = {
+  //     username,
+  //     password,
+  //   };
+
+  //   signup(data);
+  // };
 
   return (
     <form action={action}>
       <div>
-        <label htmlFor="email">Email</label>
-        <input id="email" name="email" placeholder="Email" />
+        <label htmlFor="username">Username</label>
+        <input id="username" name="username" placeholder="username" />
       </div>
-      {state?.errors?.email && <p>{state.errors.email}</p>}
-
+      {state?.errors?.username && <p>{state.errors.username}</p>}
       <div>
         <label htmlFor="password">Password</label>
         <input id="password" name="password" type="password" />

@@ -1,4 +1,5 @@
-import "server-only";
+"use server";
+
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 // import { SessionPayload } from "@/app/lib/definitions";
@@ -25,6 +26,10 @@ export async function createSession(userId: string) {
     sameSite: "lax",
     path: "/",
   });
+}
+
+export async function deleteSession() {
+  cookies().delete("session");
 }
 
 export async function decrypt(session: string | undefined = "") {

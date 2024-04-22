@@ -44,12 +44,20 @@ interface IApiProps {
   payload?: any;
   headers?: any;
   onError?: () => {};
+  onSuccess?: () => {};
 }
 
-const API = ({ method, url, payload, headers, onError }: IApiProps) => {
-  console.log("payload", payload);
+const API = ({
+  method,
+  url,
+  payload,
+  headers,
+  onSuccess,
+  onError,
+}: IApiProps) => {
+  let response;
   if (method === EMethod.get) {
-    customAxiosCustomHeaders
+    return customAxiosCustomHeaders
       .get(url, headers)
       .then((response) => {
         console.log(response.data);
@@ -60,10 +68,11 @@ const API = ({ method, url, payload, headers, onError }: IApiProps) => {
   }
 
   if (method === EMethod.post) {
-    customAxiosCustomHeaders
+    response = customAxiosCustomHeaders
       .post(url, payload, headers)
       .then((response) => {
         console.log(response.data);
+        return response.data;
       })
       .catch((error) => {
         console.error("Error:", error);
@@ -75,6 +84,10 @@ const API = ({ method, url, payload, headers, onError }: IApiProps) => {
 
   if (method === EMethod.delete) {
   }
+
+  console.log("response");
+
+  return response;
 };
 
 export default API;
